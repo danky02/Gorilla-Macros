@@ -2,7 +2,7 @@ import utilities.gui as gui
 import keyboard
 from utilities.actions import *
 import utilities.core as core
-
+import utilities.listener as listener
 
 def run():
     with freeze_clipboard():
@@ -22,10 +22,5 @@ def run():
             print(f"Gorilla is angry, reason: {exc}")
 
 
-while True:
-    keyboard.wait(    
-        'ctrl+down',
-        suppress=True,
-        trigger_on_release=True
-    )
-    run()
+# TODO separate thread
+listener.listener_thread(run)
