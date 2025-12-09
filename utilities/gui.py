@@ -84,6 +84,8 @@ class App:
         self.canvas.create_window((0, 0), window=self.list_frame, anchor="nw")
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
         self.canvas.pack(side="left", fill="both", expand=True, padx=(10,0), pady=5)
+
+
         self.scrollbar.pack(side="right", fill="y", pady=0)
 
         self.selector:int = -1
@@ -138,11 +140,54 @@ class App:
             self.master.__dict__['resultData'] = self.filtered[self.selector].replace('*', '')
             self.master.destroy()
 
+    
+import math
+def arc(c_x:float, c_y:float, alpha:float, beta:float, radius:float, steps:int) -> list[float]:
+    angle_step = (beta - alpha) / steps
+
+    angles = [(angle_step*x + alpha) for x in range(steps)]
+    res = []
+    for angle in angles:
+        res.extend([c_x + math.cos(math.radians(angle))*radius, c_y + math.sin(math.radians(angle))*radius])
+
+    return res
+
+
+def create_rounded_rectangle(canvas:tk.Canvas, x1, y1, x2, y2, radius=25, steps=4, **kwargs):
+    points = [
+        x1 + radius, y1,
+        x2 - radius, y1,
+        * arc(x2 - radius, y1 + radius, -90, 0, radius, steps),
+        x2, y1 + radius,
+        x2, y2 - radius,
+        * arc(x2 - radius, y2 - radius, 0, 90, radius, steps),
+        x2 - radius, y2,
+        x1 + radius, y2,
+        * arc(x1 + radius, y2 - radius, 90, 180, radius, steps),
+        x1, y2 - radius,
+        x1, y1 + radius,
+        * arc(x1 + radius, y1 + radius, 180, 270, radius, steps),
+    ]
+
+    return canvas.create_polygon(points, smooth=True, **kwargs)
+
+def app2(master:tk.Tk):
+    canvas = tk.Canvas(master, background="red")
+
+    canvas.pack()
+
+    create_rounded_rectangle(canvas, 20, 20, 100, 100, 20)
+
 
             
 def app_run(availableList:list[str]):
     root = tk.Tk()
     root.__dict__['resultData'] = None
+    ##
+    # root.overrideredirect(1)
+    root.configure(bg="white")
+    root.attributes("-topmost", 1)
+    root.attributes("-transparentcolor", "white")
 
     def force_exit(Event):
         root.__dict__['resultData'] = None
@@ -152,7 +197,7 @@ def app_run(availableList:list[str]):
     root.overrideredirect(True)
 
     # Dimensioni e posizione (esempio 400×200 px, centrata)
-    width, height = 400, 200
+    width, height = 500, 300
     x = (root.winfo_screenwidth() // 2) - (width // 2)
     y = (root.winfo_screenheight() // 2) - (height // 2)
     root.geometry(f"{width}x{height}+{x}+{y}")
@@ -170,15 +215,25 @@ def app_run(availableList:list[str]):
     # Assicura che la finestra catturi subito il focus
     root.focus_force()
 
+    app2(root)
 
-    app = App(root, availableList)
-    # Esempio di inizializzazione con markup per grassetto
-    app.update_list()
+    #- app = App(root, availableList)
+    #-  # Esempio di inizializzazione con markup per grassetto
+    #- app.update_list()
 
-        # Usa bind_all per intercettare i tasti anche se il widget non è direttamente focalizzato
-    root.bind_all("<Up>", app.on_up)
-    root.bind_all("<Down>", app.on_down)
-    root.bind_all("<Return>", app.on_enter)
+    #-     # Usa bind_all per intercettare i tasti anche se il widget non è direttamente focalizzato
+    #- root.bind_all("<Up>", app.on_up)
+    #- root.bind_all("<Down>", app.on_down)
+    #- root.bind_all("<Return>", app.on_enter)
 
     root.mainloop()
     return root.__dict__['resultData']
+
+
+
+
+if __name__ == "__main__":
+    res = app_run(["albero", "correre", "silenzio", "lampada", "sospettare", "dolcezza", "inseguire", "vecchio", "foresta", "scivolare",
+"martello", "paura", "cuore", "respirare", "bicicletta", "accendere", "veleno", "sottile", "fiume", "salire", "cavallo",
+"urlare", "grigio", "intanto", "scrivere", "caldo", "ovunque", "ombra", "nascondere", "fragile"])
+    print(res)
